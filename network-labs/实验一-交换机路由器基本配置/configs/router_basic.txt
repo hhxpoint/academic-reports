@@ -1,0 +1,18 @@
+! 路由器基本配置
+enable
+configure terminal
+hostname Router0
+!
+! 配置接口IP
+interface FastEthernet0/0
+ ip address 192.168.1.1 255.255.255.0
+ no shutdown
+ exit
+!
+! 查看配置
+show running-config
+show ip interface brief
+!
+! 保存配置
+end
+write memory

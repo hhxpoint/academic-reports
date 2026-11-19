@@ -1,0 +1,15 @@
+! 交换机基本配置
+enable
+configure terminal
+hostname Switch0
+!
+! 查看MAC地址表
+show mac-address-table
+!
+! 查看端口信息
+show interfaces
+show ip interface brief
+!
+! 保存配置
+end
+write memory

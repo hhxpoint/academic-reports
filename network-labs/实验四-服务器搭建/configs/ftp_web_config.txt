@@ -1,0 +1,36 @@
+FTP和WEB服务器配置步骤
+========================
+
+FTP服务配置：
+1. 打开FTP/WEB服务器设备
+2. 点击Services标签
+3. 选择FTP服务
+4. FTP Service: On
+5. 添加用户：
+   - Username: zhangsan
+   - Password: zhangsan
+   - 勾选所有权限 (RWDNL)
+   - 点击Add
+6. 默认用户cisco已存在
+
+WEB服务配置：
+1. 在同一服务器上选择HTTP服务
+2. HTTP: On
+3. HTTPS: On
+4. index.html内容可编辑
+
+FTP客户端测试：
+在PC命令行中执行：
+C:\>ftp 192.168.0.252
+Username: zhangsan
+Password: zhangsan
+ftp>dir
+ftp>get 文件名
+ftp>put 文件名
+ftp>bye
+
+WEB客户端测试：
+1. 打开PC的Desktop标签
+2. 选择Web Browser
+3. 在URL栏输入: http://www.test.com.cn
+4. 或输入: http://192.168.0.252

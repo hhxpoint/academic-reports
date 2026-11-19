@@ -1,0 +1,1018 @@
+% ============================================================
+% Automatic Speech Recognition: A Comprehensive Survey
+% For Machine Learning Course - Chinese University
+% ============================================================
+\documentclass[12pt,a4paper]{article}
+
+% ---- Encoding and Language ----
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{CJKutf8}  % For Chinese characters
+
+% ---- Math and Symbols ----
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{bm}
+
+% ---- Graphics and Tables ----
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{tabularx}
+
+% ---- References and Links ----
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+% ---- Layout ----
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+
+% ---- Misc ----
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{caption}
+\usepackage{subcaption}
+
+% ---- Custom Commands ----
+\newcommand{\ie}{\textit{i.e.}}
+\newcommand{\eg}{\textit{e.g.}}
+\newcommand{\etal}{\textit{et al.}}
+\newcommand{\etc}{\textit{etc.}}
+\newcommand{\asr}{ASR}
+\newcommand{\ctc}{CTC}
+\newcommand{\rnn}{RNN}
+\newcommand{\lstm}{LSTM}
+\newcommand{\gru}{GRU}
+\newcommand{\dnn}{DNN}
+\newcommand{\cnn}{CNN}
+\newcommand{\gmm}{GMM}
+\newcommand{\hmm}{HMM}
+\newcommand{\mfcc}{MFCC}
+\newcommand{\fbank}{Fbank}
+\newcommand{\rnnt}{RNN-T}
+\newcommand{\wer}{WER}
+\newcommand{\cer}{CER}
+
+\title{
+\textbf{Automatic Speech Recognition: A Comprehensive Survey} \\
+\large{From Statistical Models to Foundation Models}
+}
+
+\author{
+[Author Name] \\
+\textit{[Department Name]} \\
+\textit{[University Name]} \\
+\texttt{[email]}
+}
+
+\date{May 2026}
+
+\begin{document}
+\begin{CJK}{UTF8}{gbsn}  % Enable Chinese support
+
+\maketitle
+
+% ---- Abstract ----
+\begin{abstract}
+Automatic Speech Recognition (ASR), the task of converting spoken language into text, has undergone a remarkable transformation over the past several decades. From early template-matching approaches using Dynamic Time Warping (DTW), through statistical methods based on Gaussian Mixture Model--Hidden Markov Model (GMM-HMM) frameworks, to the modern deep learning era featuring end-to-end neural architectures, ASR technology has achieved unprecedented accuracy levels that often surpass human performance on benchmark datasets. This survey provides a comprehensive overview of the evolution, core techniques, current trends, and future challenges in ASR research. We trace the historical development from traditional pipeline systems to contemporary end-to-end models, examine key architectural innovations including Connectionist Temporal Classification (CTC), Recurrent Neural Network Transducers (RNN-T), attention-based encoder-decoder models, and the Conformer architecture. We further discuss the paradigm shift brought by self-supervised pre-training methods such as wav2vec 2.0, HuBERT, and WavLM, as well as the transformative impact of large-scale models like OpenAI's Whisper. Finally, we identify current challenges including noise robustness, accent and dialect handling, code-switching, and computational efficiency, while highlighting emerging trends in multilingual ASR, streaming real-time processing, and on-device deployment. This survey aims to provide machine learning researchers and practitioners with a structured understanding of the ASR field and its trajectory toward foundation models for speech.
+\end{abstract}
+
+\textbf{Keywords:} Automatic Speech Recognition, Deep Learning, End-to-End Models, Self-Supervised Learning, Foundation Models, Speech Processing
+
+% ---- Table of Contents ----
+\newpage
+\tableofcontents
+\newpage
+
+% ============================================================
+\section{Introduction}
+\label{sec:intro}
+% ============================================================
+
+Automatic Speech Recognition (ASR) is one of the most fundamental and long-standing tasks in artificial intelligence and natural language processing. The goal of ASR is to automatically convert spoken language signals into their textual representations, enabling machines to understand and process human speech. ASR technology serves as the foundation for a wide range of applications, including voice assistants (\eg, Siri, Alexa, Google Assistant), automatic transcription services, real-time captioning, call center analytics, and accessibility tools for hearing-impaired individuals.
+
+The history of ASR spans more than seven decades, beginning with early systems at Bell Laboratories in the 1950s that could recognize isolated digits spoken by a single speaker~\cite{davis1952auditory}. Over the decades, the field has witnessed several paradigm shifts: from template-matching approaches using Dynamic Time Warping (DTW)~\cite{vintsyuk1968speech}, to statistical modeling with Gaussian Mixture Model--Hidden Markov Model (GMM-HMM) systems~\cite{rabiner1989tutorial}, and most recently to deep learning-based approaches that have fundamentally transformed the field~\cite{hinton2012deep}.
+
+The deep learning revolution in ASR began around 2012 when deep neural networks (DNNs) were shown to dramatically outperform GMMs for acoustic modeling~\cite{dahl2012context}. This was followed by a series of architectural innovations: Recurrent Neural Networks (RNNs) and Long Short-Term Memory (LSTM) networks for sequence modeling~\cite{hochreiter1997long}, Convolutional Neural Networks (CNNs) for local feature extraction~\cite{abdel2014convolutional}, and attention-based encoder-decoder models that enabled fully end-to-end ASR without the need for HMM alignments~\cite{chan2016listen}. The introduction of Connectionist Temporal Classification (CTC)~\cite{graves2006connectionist} and Recurrent Neural Network Transducers (RNN-T)~\cite{graves2012sequence} provided elegant solutions to the alignment problem in sequence-to-sequence learning.
+
+In recent years, the field has entered yet another transformative phase driven by self-supervised learning and foundation models. Methods such as wav2vec 2.0~\cite{baevski2020wav2vec}, HuBERT~\cite{hsu2021hubert}, and WavLM~\cite{chen2022wavlm} have demonstrated that powerful speech representations can be learned from large amounts of unlabeled audio data, dramatically reducing the need for labeled training data. OpenAI's Whisper~\cite{radford2023robust} has shown that scaling up weakly-supervised pre-training with massive multilingual datasets can produce robust, general-purpose ASR systems that work across languages and domains.
+
+This survey aims to provide a comprehensive overview of the ASR field for machine learning researchers and practitioners. The remainder of this paper is organized as follows: Section~\ref{sec:history} traces the historical evolution of ASR systems; Section~\ref{sec:techniques} examines the core techniques and architectures; Section~\ref{sec:pretraining} discusses self-supervised pre-training methods; Section~\ref{sec:whisper} analyzes the Whisper model and its impact; Section~\ref{sec:trends} highlights current trends; Section~\ref{sec:applications} reviews applications; Section~\ref{sec:challenges} identifies open challenges; and Section~\ref{sec:conclusion} concludes with future directions.
+
+% ============================================================
+\section{Historical Evolution of ASR}
+\label{sec:history}
+% ============================================================
+
+The development of ASR technology can be broadly divided into four major eras, each characterized by distinct methodological approaches and technological capabilities.
+
+% ------------------------------------------------------------
+\subsection{Early Systems and Template Matching (1950s--1980s)}
+\label{subsec:early}
+% ------------------------------------------------------------
+
+The earliest ASR systems, developed in the 1950s at Bell Laboratories, focused on recognizing isolated digits and vowels using simple acoustic features and template-matching techniques~\cite{davis1952auditory}. These systems relied on formant frequencies and spectral analysis to classify individual speech segments.
+
+A significant advancement came with the introduction of Dynamic Time Warping (DTW) by Vintsyuk~\cite{vintsyuk1968speech} and later popularized by Sakoe and Chiba~\cite{sakoe1978dynamic}. DTW addressed the fundamental challenge of temporal variability in speech by computing an optimal alignment between two speech sequences through dynamic programming. Despite its elegance, DTW-based systems were limited to small vocabulary tasks and required template speakers, making them impractical for real-world applications.
+
+Hidden Markov Models (HMMs) were introduced to speech recognition in the late 1970s, primarily through the work of Baker at Carnegie Mellon University (Dragon Systems) and Jelinek and colleagues at IBM~\cite{baker1975draggable,jelinek1976continuous}. The HMM framework provided a principled probabilistic approach to modeling the temporal structure of speech, treating observed acoustic features as emissions from hidden states representing phonetic units.
+
+% ------------------------------------------------------------
+\subsection{The GMM-HMM Era (1990s--2010s)}
+\label{subsec:gmmhmm}
+% ------------------------------------------------------------
+
+The GMM-HMM framework became the dominant paradigm in ASR for nearly two decades. In this approach, each HMM state is associated with a Gaussian Mixture Model that models the distribution of acoustic feature vectors (typically MFCCs or filter-bank features)~\cite{rabiner1989tutorial}. The overall system comprises three major components:
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Acoustic Model}: GMMs model the emission probabilities of acoustic features given phonetic states.
+    \item \textbf{Language Model}: $n$-gram language models provide prior probabilities over word sequences.
+    \item \textbf{Pronunciation Dictionary}: Maps words to sequences of phonemes.
+\end{enumerate}
+
+The Expectation-Maximization (EM) algorithm was used for parameter estimation, while the Viterbi algorithm provided efficient decoding. Key toolkits that emerged during this era include HTK (Hidden Markov Model Toolkit)~\cite{young1997htk}, developed at Cambridge University, and later the Kaldi toolkit~\cite{povey2011kaldi}, which became the de facto standard for ASR research and development. Kaldi's modular design, extensive recipe collection, and support for modern techniques such as lattice-free MMI training made it indispensable in the research community.
+
+Major milestones of this era include the DARPA EARS program, which drove improvements in conversational telephone speech recognition, and the development of speaker adaptation techniques such as Maximum Likelihood Linear Regression (MLLR) and Maximum A Posteriori (MAP) adaptation~\cite{gales1998maximum}. Despite continuous improvements, GMM-HMM systems faced fundamental limitations: GMMs are poor at modeling the complex, non-linear relationships in high-dimensional acoustic feature spaces, and the generative nature of the framework makes it difficult to directly optimize for discrimination.
+
+% ------------------------------------------------------------
+\subsection{The Deep Learning Revolution (2012--2018)}
+\label{subsec:dl}
+% ------------------------------------------------------------
+
+The deep learning revolution in ASR was catalyzed by the seminal work of Hinton\etal~\cite{hinton2012deep}, who demonstrated that replacing GMMs with deep neural networks (DNNs) for acoustic modeling in a hybrid DNN-HMM system could yield dramatic improvements in recognition accuracy. On benchmark tasks such as the Switchboard conversational speech corpus, DNN-HMM systems reduced word error rates (WER) by 20--30\% relative to the best GMM-HMM systems~\cite{dahl2012context,seide2011conversational}.
+
+This success spurred rapid adoption of various neural network architectures for ASR:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{DNNs}: Feed-forward deep neural networks replaced GMMs as emission probability estimators in the hybrid DNN-HMM framework~\cite{dahl2012context,hinton2012deep}.
+    \item \textbf{CNNs}: Convolutional neural networks were applied to capture local spectral and temporal patterns in speech features, achieving improved noise robustness~\cite{abdel2014convolutional,sainath2015deep}.
+    \item \textbf{RNNs and LSTMs}: Recurrent architectures, particularly LSTMs~\cite{hochreiter1997long} and GRUs, excelled at modeling temporal dependencies in speech sequences, becoming the dominant architecture by 2015~\cite{graves2013speech,sak2014long}.
+    \item \textbf{Attention Mechanisms}: The introduction of attention mechanisms~\cite{bahdanau2015neural} enabled direct alignment between acoustic frames and output tokens without requiring HMM-style forced alignment.
+\end{itemize}
+
+During this period, the traditional pipeline architecture (separate acoustic model, language model, and pronunciation dictionary) remained largely intact, but the components were increasingly replaced by neural network-based alternatives. Sequence discriminative training criteria such as sMBR (state-level Minimum Bayes Risk) and lattice-free MMI (Maximum Mutual Information) further improved performance~\cite{vesely2013sequence,povey2016purely}.
+
+% ------------------------------------------------------------
+\subsection{The End-to-End Era (2015--Present)}
+\label{subsec:e2e}
+% ------------------------------------------------------------
+
+The end-to-end ASR paradigm represents a fundamental departure from the traditional pipeline approach by training a single neural network to directly map acoustic features to output text sequences. This eliminates the need for separate acoustic models, language models, pronunciation dictionaries, and HMM alignments.
+
+Three major approaches have emerged for end-to-end ASR:
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{CTC-based models}: Connectionist Temporal Classification~\cite{graves2006connectionist} introduces a blank symbol and marginalizes over all possible alignments between input and output sequences. Baidu's Deep Speech and Deep Speech 2 demonstrated the effectiveness of CTC for large-scale ASR~\cite{hannun2014deep,amodei2016deep}.
+    \item \textbf{Attention-based encoder-decoder}: The Listen, Attend and Spell (LAS) model~\cite{chan2016listen} uses an attention mechanism to directly attend to relevant encoder states when generating each output token, without any conditional independence assumptions.
+    \item \textbf{RNN-Transducer (RNN-T)}: The RNN-T framework~\cite{graves2012sequence} extends CTC by adding a prediction network that models the output label dependencies, enabling streaming recognition. RNN-T has become the preferred architecture for production ASR systems, including Google's streaming ASR~\cite{he2019streaming}.
+\end{enumerate}
+
+The Conformer architecture~\cite{gulati2020conformer}, introduced in 2020, combined convolution modules for local feature extraction with self-attention layers for global context modeling, achieving state-of-the-art performance on multiple ASR benchmarks. The Transformer architecture~\cite{vaswani2017attention}, originally developed for natural language processing, was also widely adopted for ASR encoder and decoder components, offering superior parallelization compared to recurrent architectures.
+
+% ============================================================
+\section{Core Techniques in ASR}
+\label{sec:techniques}
+% ============================================================
+
+% ------------------------------------------------------------
+\subsection{Feature Extraction}
+\label{subsec:features}
+% ------------------------------------------------------------
+
+Feature extraction is the first critical step in any ASR system, converting raw audio waveforms into compact, informative representations. The field has evolved from hand-crafted features to learned representations.
+
+\subsubsection{Traditional Features}
+
+\textbf{Mel-Frequency Cepstral Coefficients (MFCCs)}~\cite{davis1980comparison} remain one of the most widely used acoustic features. The MFCC extraction pipeline involves:
+\begin{enumerate}[leftmargin=*]
+    \item Pre-emphasis to boost high-frequency components
+    \item Framing and windowing (typically 25ms frames with 10ms shift)
+    \item Short-Time Fourier Transform (STFT) for spectral analysis
+    \item Mel-frequency filter bank application (typically 26--40 filters)
+    \item Log compression
+    \item Discrete Cosine Transform (DCT) to decorrelate features
+    \item Optionally, appending delta and delta-delta coefficients
+\end{enumerate}
+
+\textbf{Log Mel-Filter Bank (Fbank)} features omit the DCT step and use the log-energies of the Mel filter bank directly. Fbank features have become the standard input for modern neural network-based ASR systems, as neural networks can learn their own decorrelation and compression.
+
+\subsubsection{Learned Representations}
+
+The emergence of self-supervised learning has led to the development of learned speech representations that often outperform hand-crafted features. Wav2vec~\cite{schneider2019wav2vec} and its successor wav2vec 2.0~\cite{baevski2020wav2vec} learn contextualized speech representations through contrastive predictive coding on raw waveforms. These representations capture both acoustic and linguistic information and can be fine-tuned for downstream ASR tasks with minimal labeled data. Similarly, HuBERT~\cite{hsu2021hubert} learns representations through masked prediction of discrete pseudo-labels obtained by clustering.
+
+% ------------------------------------------------------------
+\subsection{Acoustic Modeling}
+\label{subsec:acoustic}
+% ------------------------------------------------------------
+
+\subsubsection{GMM-HMM Acoustic Models}
+
+In traditional ASR systems, GMMs model the emission probability of acoustic feature vectors $\mathbf{o}_t$ given HMM state $s_j$:
+\begin{equation}
+    p(\mathbf{o}_t | s_j) = \sum_{m=1}^{M} w_{jm} \mathcal{N}(\mathbf{o}_t; \bm{\mu}_{jm}, \bm{\Sigma}_{jm})
+\end{equation}
+where $w_{jm}$, $\bm{\mu}_{jm}$, and $\bm{\Sigma}_{jm}$ are the weight, mean, and covariance of the $m$-th mixture component for state $s_j$.
+
+\subsubsection{Hybrid DNN-HMM Models}
+
+In the hybrid DNN-HMM framework~\cite{bourlard1989links,bourlard2012connectionist}, a DNN replaces the GMM as the emission probability estimator, computing posterior probabilities $p(s_j | \mathbf{o}_t)$ over context-dependent states. These posteriors are converted to likelihoods using Bayes' rule:
+\begin{equation}
+    p(\mathbf{o}_t | s_j) = \frac{p(s_j | \mathbf{o}_t) \cdot p(s_j)}{p(\mathbf{o}_t)}
+\end{equation}
+
+\subsubsection{CTC (Connectionist Temporal Classification)}
+
+CTC~\cite{graves2006connectionist} addresses the alignment problem by introducing a special blank token $\epsilon$ and defining the CTC loss as the negative log-likelihood of the correct output sequence $\mathbf{y}$ given the input $\mathbf{x}$:
+\begin{equation}
+    \mathcal{L}_{\text{CTC}} = -\log p(\mathbf{y} | \mathbf{x}) = -\log \sum_{\pi \in \mathcal{B}^{-1}(\mathbf{y})} \prod_{t=1}^{T} p(\pi_t | \mathbf{x})
+\end{equation}
+where $\mathcal{B}^{-1}(\mathbf{y})$ is the set of all possible alignments (paths) $\pi$ that collapse to $\mathbf{y}$ after removing blanks and repeated symbols. The forward-backward algorithm enables efficient computation of this marginalization.
+
+CTC assumes conditional independence of output predictions given the input, which limits its ability to model language-level dependencies. Despite this limitation, CTC remains popular due to its simplicity, efficiency, and amenability to streaming recognition.
+
+\subsubsection{RNN-Transducer (RNN-T)}
+
+The RNN-T framework~\cite{graves2012sequence} extends CTC by adding a \textit{prediction network} that conditions the output distribution on previous non-blank labels, thus modeling output label dependencies. The RNN-T defines:
+\begin{equation}
+    p(y_u | \mathbf{x}, y_1, \ldots, y_{u-1}, t) = \text{JointNet}(h_t^{\text{enc}}, h_u^{\text{pred}})
+\end{equation}
+where $h_t^{\text{enc}}$ is the encoder state at time $t$, $h_u^{\text{pred}}$ is the prediction network state conditioned on previous labels, and JointNet combines them to produce output probabilities. The total probability is obtained by marginalizing over all valid alignment paths using a modified forward-backward algorithm.
+
+RNN-T has become the preferred architecture for production streaming ASR systems due to its ability to produce outputs incrementally while maintaining strong performance~\cite{he2019streaming,gulati2020conformer}.
+
+\subsubsection{Attention-Based Encoder-Decoder}
+
+The attention-based encoder-decoder framework~\cite{bahdanau2015neural,chan2016listen} directly models the conditional probability of the output sequence:
+\begin{equation}
+    p(\mathbf{y} | \mathbf{x}) = \prod_{u=1}^{U} p(y_u | y_1, \ldots, y_{u-1}, \mathbf{x})
+\end{equation}
+where each conditional probability is computed using an attention mechanism:
+\begin{equation}
+    \alpha_{u,t} = \frac{\exp(e_{u,t})}{\sum_{t'} \exp(e_{u,t'})}, \quad c_u = \sum_t \alpha_{u,t} h_t^{\text{enc}}
+\end{equation}
+Here, $e_{u,t}$ is an alignment score computed by a learned attention function, $\alpha_{u,t}$ are attention weights, and $c_u$ is the context vector.
+
+The Listen, Attend and Spell (LAS) model~\cite{chan2016listen} was the first to demonstrate competitive ASR performance with a pure attention-based encoder-decoder. However, attention-based models are inherently non-streaming (as they require full encoder output before decoding) and can suffer from attention failures on long sequences.
+
+% ------------------------------------------------------------
+\subsection{Language Model Integration}
+\label{subsec:lm}
+% ------------------------------------------------------------
+
+Language models (LMs) play a crucial role in ASR systems by providing prior probabilities over word sequences, helping to resolve acoustic ambiguities. Several integration strategies have been developed:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Shallow Fusion}~\cite{gulcehre2015using}: The LM score is added to the encoder-decoder score during beam search:
+    \begin{equation}
+        \hat{p}(\mathbf{y} | \mathbf{x}) = p_{\text{E2E}}(\mathbf{y} | \mathbf{x}) \cdot p_{\text{LM}}(\mathbf{y})^{\lambda}
+    \end{equation}
+    where $\lambda$ is a tunable LM weight.
+
+    \item \textbf{Deep Fusion}~\cite{gulcehre2015using}: The LM hidden states are concatenated with the decoder states before the output layer, allowing the LM and decoder to interact at a deeper level.
+
+    \item \textbf{Cold Fusion}~\cite{sriram2018cold}: A pre-trained LM is integrated into the decoder architecture, with a gating mechanism that controls how much the LM contributes.
+
+    \item \textbf{N-best Rescoring}: The ASR system generates $N$-best hypotheses, which are then rescored using a more powerful external LM (\eg, a large Transformer LM).
+\end{itemize}
+
+In the end-to-end paradigm, internal language model estimation (ILME)~\cite{meng2021internal} has been proposed to estimate and adjust the implicit language model learned by the encoder-decoder model, enabling better integration with external LMs.
+
+% ------------------------------------------------------------
+\subsection{The Conformer Architecture}
+\label{subsec:conformer}
+% ------------------------------------------------------------
+
+The Conformer architecture~\cite{gulati2020conformer}, proposed by Google in 2020, has become the dominant encoder architecture for modern ASR systems. The key innovation is the combination of convolution and self-attention within a single encoder block, addressing the limitations of using either mechanism alone:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Self-attention} excels at modeling global context and long-range dependencies but is computationally expensive and may miss local patterns.
+    \item \textbf{Convolution} efficiently captures local spectral-temporal patterns but lacks global context modeling.
+\end{itemize}
+
+Each Conformer block consists of four modules arranged in a sandwich structure:
+\begin{equation}
+    \tilde{x}_i = x_i + \frac{1}{2} \text{FFN}_1(x_i)
+\end{equation}
+\begin{equation}
+    x_i' = \tilde{x}_i + \text{MHSA}(\tilde{x}_i)
+\end{equation}
+\begin{equation}
+    x_i'' = x_i' + \text{Conv}(x_i')
+\end{equation}
+\begin{equation}
+    y_i = \text{LayerNorm}(x_i'' + \frac{1}{2} \text{FFN}_2(x_i''))
+\end{equation}
+
+where FFN is a feed-forward module with Swish activation, MHSA is multi-headed self-attention, and Conv is a convolution module with gated linear unit (GLU) activation. A Macaron-style structure with half-step feed-forward modules is used before and after the attention-convolution combination.
+
+The Conformer achieved state-of-the-art results on LibriSpeech~\cite{panayotov2015librispeech}, achieving 1.9\% WER on the test-clean set and 3.9\% on the test-other set at the time of publication, significantly outperforming pure Transformer and LSTM-based models.
+
+% ============================================================
+\section{Self-Supervised Pre-Training for ASR}
+\label{sec:pretraining}
+% ============================================================
+
+Self-supervised learning (SSL) has emerged as a transformative paradigm for speech processing, enabling the learning of powerful speech representations from large amounts of unlabeled audio data. This is particularly significant for ASR because labeled speech data is expensive to obtain (requiring professional transcribers), while unlabeled speech data is abundant.
+
+% ------------------------------------------------------------
+\subsection{Wav2vec and Wav2vec 2.0}
+\label{subsec:wav2vec}
+% ------------------------------------------------------------
+
+Wav2vec~\cite{schneider2019wav2vec} introduced contrastive predictive coding for learning speech representations from raw audio. The model learns to distinguish future speech samples from negative samples through a contrastive loss applied to representations from a CNN feature extractor.
+
+Wav2vec 2.0~\cite{baevski2020wav2vec} significantly advanced this approach by combining masked prediction with quantization. The architecture consists of:
+\begin{enumerate}[leftmargin=*]
+    \item A CNN feature encoder that processes raw waveforms into latent speech representations $\mathbf{z}_1, \ldots, \mathbf{z}_T$
+    \item A Transformer encoder that processes the quantized representations with masking applied to a proportion of time steps
+    \item A quantization module that discretizes the CNN outputs into a finite set of codes
+\end{enumerate}
+
+The training objective is a contrastive loss that requires the model to identify the correct quantized representation for masked time steps among a set of distractors, combined with a diversity loss that encourages the use of all codebook entries. When fine-tuned on just 10 minutes of labeled data, wav2vec 2.0 achieved WERs competitive with models trained on 100 times more labeled data, demonstrating the remarkable data efficiency of self-supervised pre-training.
+
+% ------------------------------------------------------------
+\subsection{HuBERT}
+\label{subsec:hubert}
+% ------------------------------------------------------------
+
+HuBERT (Hidden-Unit BERT)~\cite{hsu2021hubert} takes a different approach inspired by BERT's masked language modeling. Instead of contrastive learning, HuBERT uses an offline clustering step to generate pseudo-labels for speech segments, then trains a Transformer encoder to predict these pseudo-labels for masked regions through a cross-entropy loss.
+
+The training procedure alternates between:
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Clustering}: $k$-means clustering is applied to MFCC features or learned representations to generate pseudo-labels.
+    \item \textbf{Prediction}: The model is trained to predict pseudo-labels for masked segments using a BERT-style masked prediction objective.
+\end{enumerate}
+
+HuBERT achieves comparable or superior performance to wav2vec 2.0 on ASR benchmarks, and the approach is conceptually simpler as it does not require contrastive learning or quantization during training. The success of HuBERT demonstrates that masked prediction, a technique proven effective in NLP, can also be highly effective for speech representation learning.
+
+% ------------------------------------------------------------
+\subsection{WavLM}
+\label{subsec:wavlm}
+% ------------------------------------------------------------
+
+WavLM~\cite{chen2022wavlm} extends the HuBERT framework by incorporating denoising objectives during pre-training. In addition to masked prediction, WavLM includes a masked speech denoising task where the model must predict pseudo-labels for masked segments in noisy speech. This dual objective enables WavLM to learn representations that are both linguistically informative and robust to acoustic noise.
+
+WavLM achieved state-of-the-art performance on the SUPERB benchmark~\cite{yang2021superb}, which evaluates speech representations across multiple downstream tasks including ASR, speaker verification, speech separation, and emotion recognition. The model demonstrated particular strength in non-ASR tasks such as speaker diarization and speech separation.
+
+% ------------------------------------------------------------
+\subsection{Other SSL Methods}
+\label{subsec:other_ssl}
+% ------------------------------------------------------------
+
+Several other notable self-supervised methods have been proposed:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Mockingjay}~\cite{liu2020mockingjay}: A BERT-style pre-training approach for speech that predicts masked Mel spectrogram frames.
+    \item \textbf{TERA}~\cite{liu2021tera}: Extends Mockingjay with multi-task and multi-transformer prediction objectives.
+    \item \textbf{APC (Autoregressive Predictive Coding)}~\cite{chung2019unsupervised}: Learns speech representations by predicting future frames in an autoregressive manner.
+    \item \textbf{CPC (Contrastive Predictive Coding)}~\cite{oord2018representation}: A general framework for learning representations through contrastive prediction of future latent states.
+    \item \textbf{data2vec}~\cite{baevski2022data2vec}: A unified self-supervised framework for speech, vision, and language that predicts contextualized latent representations.
+\end{itemize}
+
+% ============================================================
+\section{The Whisper Model and Its Impact}
+\label{sec:whisper}
+% ============================================================
+
+OpenAI's Whisper~\cite{radford2023robust}, released in 2022, represents a paradigm shift in ASR by demonstrating that simple scaling of weakly-supervised pre-training data can produce remarkably robust and general-purpose speech recognition systems.
+
+% ------------------------------------------------------------
+\subsection{Architecture and Training}
+% ------------------------------------------------------------
+
+Whisper uses a standard encoder-decoder Transformer architecture~\cite{vaswani2017attention} with relatively few modifications:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Encoder}: Processes 80-channel log-Mel spectrograms computed from 30-second audio windows. The spectrograms are passed through two convolutional layers with GELU activation, followed by sinusoidal positional encoding and Transformer encoder blocks.
+    \item \textbf{Decoder}: An autoregressive Transformer decoder that generates text tokens conditioned on the encoder output and previously generated tokens.
+\end{itemize}
+
+The key innovation of Whisper lies not in its architecture but in its training data and methodology. The model was trained on 680,000 hours of weakly-supervised audio data collected from the internet, with automatic transcripts that may contain errors. This is orders of magnitude larger than typical ASR training datasets (LibriSpeech has 960 hours). The training data spans 99 languages, enabling multilingual and cross-lingual capabilities.
+
+Whisper is trained as a multitask model that can perform:
+\begin{itemize}[leftmargin=*]
+    \item Multilingual speech recognition
+    \item Speech translation (to English)
+    \item Language identification
+    \item Voice activity detection (via special tokens)
+    \item Timestamp prediction
+\end{itemize}
+
+% ------------------------------------------------------------
+\subsection{Performance and Impact}
+% ------------------------------------------------------------
+
+Whisper achieves competitive or state-of-the-art performance across diverse benchmarks without any task-specific fine-tuning. On LibriSpeech, the large-v2 model achieves approximately 2.7\% WER on test-clean and 5.2\% on test-other, which is competitive with supervised models trained specifically on LibriSpeech.
+
+The impact of Whisper on the ASR community has been substantial:
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Democratization}: Whisper's open-source release made high-quality ASR accessible to researchers and developers without specialized ASR expertise.
+    \item \textbf{Robustness}: The massive and diverse training data results in models that generalize well across accents, acoustic conditions, and domains.
+    \item \textbf{Multilingual}: Whisper supports 99 languages with varying degrees of quality, making it one of the most multilingual ASR systems available.
+    \item \textbf{Simplicity}: The standard architecture and straightforward training approach contrast with the complex pipelines of traditional ASR systems.
+\end{enumerate}
+
+Follow-up works have extended Whisper in several directions: distillation for efficient deployment~\cite{tian2023few}, fine-tuning for domain-specific applications~\cite{wang2023benchmarking}, and integration with large language models for improved post-processing.
+
+% ============================================================
+\section{Current Trends and Emerging Directions}
+\label{sec:trends}
+% ============================================================
+
+% ------------------------------------------------------------
+\subsection{Foundation Models for Speech}
+\label{subsec:foundations}
+% ------------------------------------------------------------
+
+The concept of foundation models~\cite{bommasani2021opportunities}, large models pre-trained on broad data that can be adapted to diverse downstream tasks, has been extended to the speech domain. Speech foundation models such as Qwen-Audio~\cite{chu2023qwen}, SALMONN~\cite{tang2023salmonn}, and SpeechGPT~\cite{zhang2023speechgpt} combine speech encoders with large language models (LLMs) to enable a wide range of speech understanding and generation tasks.
+
+These models typically follow a modular architecture:
+\begin{enumerate}[leftmargin=*]
+    \item A speech encoder (often based on Whisper or self-supervised models) converts audio into continuous representations.
+    \item An adapter or projection layer maps speech representations to the LLM's embedding space.
+    \item A large language model processes the multimodal input and generates text outputs.
+\end{enumerate}
+
+% ------------------------------------------------------------
+\subsection{Multilingual ASR}
+\label{subsec:multilingual}
+% ------------------------------------------------------------
+
+Multilingual ASR aims to build systems that can recognize speech in multiple languages, either through a single model or through language-specific adaptations. Key approaches include:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Multilingual Training}: Training a single model on data from multiple languages with language identification tokens, as practiced in Whisper~\cite{radford2023robust} and MMS~\cite{pratap2023scaling}.
+    \item \textbf{Massively Multilingual Speech (MMS)}~\cite{pratap2023scaling}: Meta's MMS project scaled ASR to over 1,100 languages by leveraging self-supervised learning (wav2vec 2.0) with Bible readings and other religious texts as training data.
+    \item \textbf{Language-Adaptive Fine-Tuning}: Pre-training on multilingual data followed by fine-tuning on individual languages.
+\end{itemize}
+
+% ------------------------------------------------------------
+\subsection{Streaming and Real-Time ASR}
+\label{subsec:streaming}
+% ------------------------------------------------------------
+
+Streaming ASR systems process audio incrementally with low latency, producing text output in real-time as speech is received. This is essential for applications such as live captioning, voice assistants, and conversational AI. Key approaches include:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{RNN-T with Causal Encoders}: RNN-T models with causal (\ie, unidirectional) encoders enable strictly streaming recognition~\cite{he2019streaming}.
+    \item \textbf{Chunked Attention}: Conformers and Transformers with chunked causal attention~\cite{gulati2020conformer} allow limited future context while maintaining streaming capability.
+    \item \textbf{Look-ahead Models}: Models like Emformer~\cite{shi2021emformer} use look-ahead frames to improve accuracy while maintaining low latency.
+    \item \textbf{Two-Pass Models}: A first-pass streaming model generates initial hypotheses, which are refined by a second-pass non-streaming model~\cite{saon2023advancing}.
+\end{itemize}
+
+% ------------------------------------------------------------
+\subsection{On-Device and Edge ASR}
+\label{subsec:edge}
+% ------------------------------------------------------------
+
+Deploying ASR models on mobile devices and edge hardware requires significant model compression and optimization. Key techniques include:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Knowledge Distillation}: Training smaller student models to mimic larger teacher models~\cite{hinton2015distilling}.
+    \item \textbf{Pruning}: Removing redundant parameters from trained models.
+    \item \textbf{Quantization}: Reducing numerical precision from 32-bit floating point to 8-bit or even 4-bit integers.
+    \item \textbf{Architecture Design}: Developing efficient architectures such as squeezeformer~\cite{kim2023squeezeformer} and efficient conformer variants.
+\end{itemize}
+
+Google's on-device speech recognition and Apple's on-device Siri recognition are prominent examples of deployed edge ASR systems.
+
+% ------------------------------------------------------------
+\subsection{End-to-End vs. Pipeline Approaches}
+\label{subsec:e2e_vs_pipe}
+% ------------------------------------------------------------
+
+The debate between end-to-end and pipeline approaches continues. While end-to-end models offer simplicity and joint optimization, pipeline systems still have advantages in certain scenarios:
+
+\begin{table}[htbp]
+\centering
+\caption{Comparison of End-to-End and Pipeline ASR Systems}
+\label{tab:e2e_vs_pipe}
+\begin{tabular}{@{}p{4cm}p{5.5cm}p{5.5cm}@{}}
+\toprule
+\textbf{Aspect} & \textbf{End-to-End} & \textbf{Pipeline} \\
+\midrule
+Architecture & Single model, direct mapping & Separate AM, LM, decoder \\
+Training & Joint optimization & Separate component training \\
+Data Efficiency & Requires large labeled datasets & Components can be trained separately \\
+Adaptability & Difficult to adapt individual components & Easy to swap/update components \\
+LM Integration & Implicit or via fusion & Explicit, flexible \\
+Decoding & Typically beam search & WFST-based, lattice rescoring \\
+Performance (large data) & Generally superior & Competitive \\
+Performance (low-resource) & May underperform & Better with external resources \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ============================================================
+\section{Applications}
+\label{sec:applications}
+% ============================================================
+
+ASR technology enables a wide range of applications across various domains:
+
+% ------------------------------------------------------------
+\subsection{Voice Assistants and Smart Speakers}
+\label{subsec:assistants}
+% ------------------------------------------------------------
+
+Voice assistants such as Amazon Alexa, Apple Siri, Google Assistant, and Microsoft Cortana rely on ASR as the first step in understanding user commands. These systems must handle diverse accents, background noise, far-field speech, and conversational context. The challenge of wake-word detection, endpoint detection, and multi-turn dialogue management adds additional complexity beyond basic transcription.
+
+% ------------------------------------------------------------
+\subsection{Automatic Transcription Services}
+\label{subsec:transcription}
+% ------------------------------------------------------------
+
+Commercial transcription services such as Otter.ai, Rev, and Google's speech-to-text API provide automated transcription for meetings, lectures, interviews, and podcasts. These services must handle long-form audio, multiple speakers, and domain-specific vocabulary. Quality requirements vary by application, with medical and legal transcription demanding particularly high accuracy.
+
+% ------------------------------------------------------------
+\subsection{Real-Time Captioning}
+\label{subsec:captioning}
+% ------------------------------------------------------------
+
+Real-time captioning provides accessibility for deaf and hard-of-hearing individuals in live settings such as television broadcasts, online meetings (Zoom, Teams), and educational environments. Latency requirements are strict (typically under 3 seconds), and accuracy must be high to be useful.
+
+% ------------------------------------------------------------
+\subsection{Call Center Analytics}
+\label{subsec:callcenter}
+% ------------------------------------------------------------
+
+ASR enables automated analysis of call center interactions for quality monitoring, sentiment analysis, compliance checking, and customer insights. Challenges include handling compressed telephony audio (typically 8kHz), diverse accents, and background noise from both agent and customer sides.
+
+% ------------------------------------------------------------
+\subsection{Medical and Legal Transcription}
+\label{subsec:medical}
+% ------------------------------------------------------------
+
+Domain-specific ASR for medical and legal transcription requires handling specialized vocabularies, structured output formats, and high accuracy requirements. Medical ASR systems must recognize drug names, anatomical terms, and clinical abbreviations, while legal ASR must handle formal language and citations.
+
+% ============================================================
+\section{Challenges and Open Problems}
+\label{sec:challenges}
+% ============================================================
+
+Despite remarkable progress, several significant challenges remain in ASR research.
+
+% ------------------------------------------------------------
+\subsection{Noise Robustness}
+\label{subsec:noise}
+% ------------------------------------------------------------
+
+Real-world speech often contains background noise from various sources (traffic, music, other speakers, electronic devices), reverberation, and channel distortions. While multi-style training with augmented data~\cite{ko2015audio,park2019specaugment} has improved robustness, significant performance degradation still occurs in very noisy conditions. SpecAugment~\cite{park2019specaugment}, which applies time and frequency masking to spectrograms during training, has become a standard data augmentation technique.
+
+% ------------------------------------------------------------
+\subsection{Accent and Dialect Handling}
+\label{subsec:accent}
+% ------------------------------------------------------------
+
+ASR systems often perform worse on non-native accents, regional dialects, and underrepresented language varieties. This is primarily due to biases in training data, which tends to over-represent standard accents from educated speakers. Addressing this requires diverse training data collection, accent-aware modeling, and adaptation techniques.
+
+% ------------------------------------------------------------
+\subsection{Code-Switching}
+\label{subsec:codeswitch}
+% ------------------------------------------------------------
+
+Code-switching, the practice of alternating between languages within a conversation or sentence, is common in multilingual communities but poses significant challenges for ASR systems. Current models struggle with code-switched speech due to limited training data and the difficulty of modeling language transitions. Research in this area includes mixed-language acoustic modeling and language-aware attention mechanisms~\cite{li2022code}.
+
+% ------------------------------------------------------------
+\subsection{Long-Form Audio}
+\label{subsec:longform}
+% ------------------------------------------------------------
+
+Processing long-form audio (\eg, multi-hour meetings, lectures, podcasts) presents challenges for ASR systems due to memory constraints, context limitations, and the need for speaker diarization. Most ASR models are designed for short utterances (10--30 seconds) and require segmentation strategies for longer inputs. Contextual information from previous segments can help maintain consistency but adds computational overhead.
+
+% ------------------------------------------------------------
+\subsection{Computational Efficiency}
+\label{subsec:efficiency}
+% ------------------------------------------------------------
+
+Modern ASR models, particularly large Transformer-based architectures, require significant computational resources for both training and inference. This limits their deployment on resource-constrained devices and increases operational costs for cloud-based services. Research on efficient architectures~\cite{kim2023squeezeformer}, model compression, and hardware-aware optimization is crucial for enabling widespread deployment.
+
+% ------------------------------------------------------------
+\subsection{Evaluation Metrics}
+\label{subsec:metrics}
+% ------------------------------------------------------------
+
+The standard evaluation metric for ASR is Word Error Rate (WER), defined as:
+\begin{equation}
+    \text{WER} = \frac{S + D + I}{N} \times 100\%
+\end{equation}
+where $S$, $D$, and $I$ are the number of substitutions, deletions, and insertions, respectively, and $N$ is the total number of words in the reference. For Chinese, Character Error Rate (CER) is used instead, as Chinese text does not use spaces to separate words.
+
+WER has known limitations: it penalizes all errors equally regardless of semantic importance, does not account for word boundary ambiguity, and may not correlate with downstream task performance. Alternative metrics such as semantic error rate (SemER) and task-specific metrics have been proposed but have not gained widespread adoption.
+
+% ============================================================
+\section{Benchmark Datasets}
+\label{sec:benchmarks}
+% ============================================================
+
+Several benchmark datasets have been instrumental in driving ASR research progress:
+
+\begin{table}[htbp]
+\centering
+\caption{Major ASR Benchmark Datasets}
+\label{tab:benchmarks}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Dataset} & \textbf{Language} & \textbf{Size (hours)} & \textbf{Domain} \\
+\midrule
+TIMIT~\cite{garofolo1993timit} & English & 6.3 & Read speech \\
+WSJ~\cite{paul1992design} & English & 81.3 & Read speech (news) \\
+Switchboard~\cite{godfrey1992switchboard} & English & 300 & Conversational \\
+Fisher~\cite{cieri2004fisher} & English & 2000 & Conversational \\
+LibriSpeech~\cite{panayotov2015librispeech} & English & 960 & Read speech (audiobooks) \\
+Common Voice~\cite{ardila2020common} & Multilingual & 2500+ & Crowdsourced \\
+AISHELL-1~\cite{bu2017aishell} & Mandarin & 178 & Read speech \\
+AISHELL-2~\cite{du2018aishell} & Mandarin & 1000 & Read speech \\
+GigaSpeech~\cite{chen2021gigaspeech} & English & 10,000 & Multi-domain \\
+SPGISpeech~\cite{o2021spgispeech} & English & 5,000 & Financial \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ============================================================
+\section{Conclusion and Future Directions}
+\label{sec:conclusion}
+% ============================================================
+
+This survey has provided a comprehensive overview of Automatic Speech Recognition, tracing its evolution from early template-matching systems through statistical GMM-HMM models to modern deep learning-based end-to-end systems. The field has undergone remarkable transformations, with each paradigm shift bringing significant improvements in accuracy, robustness, and applicability.
+
+Several key trends are shaping the future of ASR:
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Foundation Models}: The convergence of self-supervised pre-training, large-scale weak supervision, and large language models is creating powerful speech foundation models that can handle diverse tasks beyond simple transcription.
+
+    \item \textbf{Multilingual and Low-Resource ASR}: Self-supervised pre-training and massively multilingual models are making ASR available for thousands of previously unsupported languages.
+
+    \item \textbf{Streaming and Real-Time}: The demand for low-latency, real-time ASR continues to drive innovations in efficient streaming architectures.
+
+    \item \textbf{Multimodal Integration}: Integration of speech with text, vision, and other modalities through large language models opens new possibilities for understanding and generation.
+
+    \item \textbf{Efficient Deployment}: On-device ASR, model compression, and hardware-aware optimization are enabling ASR deployment on a wider range of devices.
+\end{enumerate}
+
+The ultimate goal of ASR research -- a system that can understand any speaker, in any language, in any environment, with human-level accuracy -- remains an active pursuit. With the rapid pace of innovation in deep learning, self-supervised learning, and foundation models, this goal appears increasingly within reach.
+
+% ============================================================
+% References
+% ============================================================
+\newpage
+\bibliographystyle{plainnat}
+\begin{thebibliography}{99}
+
+\bibitem{davis1952auditory}
+S.~Davis, R.~Biddulph, and S.~Balashek,
+``Automatic recognition of spoken digits,''
+\textit{Journal of the Acoustical Society of America}, vol.~24, no.~6, pp.~637--642, 1952.
+
+\bibitem{vintsyuk1968speech}
+T.~Vintsyuk,
+``Speech discrimination by dynamic programming,''
+\textit{Cybernetics}, vol.~4, no.~1, pp.~52--57, 1968.
+
+\bibitem{sakoe1978dynamic}
+H.~Sakoe and S.~Chiba,
+``Dynamic programming algorithm optimization for spoken word recognition,''
+\textit{IEEE Transactions on Acoustics, Speech, and Signal Processing}, vol.~26, no.~1, pp.~43--49, 1978.
+
+\bibitem{rabiner1989tutorial}
+L.~R.~Rabiner,
+``A tutorial on hidden Markov models and selected applications in speech recognition,''
+\textit{Proceedings of the IEEE}, vol.~77, no.~2, pp.~257--286, 1989.
+
+\bibitem{baker1975draggable}
+J.~K.~Baker,
+``The dragon system---An overview,''
+\textit{IEEE Transactions on Acoustics, Speech, and Signal Processing}, vol.~23, no.~1, pp.~24--29, 1975.
+
+\bibitem{jelinek1976continuous}
+F.~Jelinek,
+``Continuous speech recognition by statistical methods,''
+\textit{Proceedings of the IEEE}, vol.~64, no.~4, pp.~532--556, 1976.
+
+\bibitem{young1997htk}
+S.~Young \etal,
+``The HTK book,''
+Cambridge University Engineering Department, 1997.
+
+\bibitem{povey2011kaldi}
+D.~Povey \etal,
+``The Kaldi speech recognition toolkit,''
+in \textit{Proc. ASRU}, IEEE, 2011.
+
+\bibitem{gales1998maximum}
+M.~J.~F.~Gales,
+``Maximum likelihood linear transformations for HMM-based speech recognition,''
+\textit{Computer Speech \& Language}, vol.~12, no.~2, pp.~75--98, 1998.
+
+\bibitem{hinton2012deep}
+G.~Hinton \etal,
+``Deep neural networks for acoustic modeling in speech recognition: The shared views of four research groups,''
+\textit{IEEE Signal Processing Magazine}, vol.~29, no.~6, pp.~82--97, 2012.
+
+\bibitem{dahl2012context}
+G.~E.~Dahl, D.~Yu, L.~Deng, and A.~Acero,
+``Context-dependent pre-trained deep neural networks for large-vocabulary speech recognition,''
+\textit{IEEE Transactions on Audio, Speech, and Language Processing}, vol.~20, no.~1, pp.~30--42, 2012.
+
+\bibitem{seide2011conversational}
+F.~Seide, G.~Li, and D.~Yu,
+``Conversational speech transcription using context-dependent deep neural networks,''
+in \textit{Proc. Interspeech}, 2011, pp.~437--440.
+
+\bibitem{hochreiter1997long}
+S.~Hochreiter and J.~Schmidhuber,
+``Long short-term memory,''
+\textit{Neural Computation}, vol.~9, no.~8, pp.~1735--1780, 1997.
+
+\bibitem{graves2013speech}
+A.~Graves, A.~Mohamed, and G.~Hinton,
+``Speech recognition with deep recurrent neural networks,''
+in \textit{Proc. ICASSP}, IEEE, 2013, pp.~6645--6649.
+
+\bibitem{sak2014long}
+H.~Sak, A.~Senior, and F.~Beaufays,
+``Long short-term memory recurrent neural network architectures for large scale acoustic modeling,''
+in \textit{Proc. Interspeech}, 2014, pp.~338--342.
+
+\bibitem{abdel2014convolutional}
+O.~Abdel-Hamid, A.~Mohamed, H.~Jiang, and G.~Penn,
+``Applying convolutional neural networks concepts to hybrid NN-HMM model for speech recognition,''
+in \textit{Proc. ICASSP}, IEEE, 2012, pp.~4277--4280.
+
+\bibitem{sainath2015deep}
+T.~N.~Sainath \etal,
+``Deep convolutional neural networks for large-scale speech tasks,''
+\textit{Neural Networks}, vol.~64, pp.~39--48, 2015.
+
+\bibitem{bahdanau2015neural}
+D.~Bahdanau, K.~Cho, and Y.~Bengio,
+``Neural machine translation by jointly learning to align and translate,''
+in \textit{Proc. ICLR}, 2015.
+
+\bibitem{chan2016listen}
+W.~Chan, N.~Jaitly, Q.~V.~Le, and O.~Vinyals,
+``Listen, attend and spell: A neural network for large vocabulary conversational speech recognition,''
+in \textit{Proc. ICASSP}, IEEE, 2016, pp.~4960--4964.
+
+\bibitem{graves2006connectionist}
+A.~Graves, S.~Fern\'{a}ndez, F.~Gomez, and J.~Schmidhuber,
+``Connectionist temporal classification: Labelling unsegmented sequence data with recurrent neural networks,''
+in \textit{Proc. ICML}, ACM, 2006, pp.~369--376.
+
+\bibitem{graves2012sequence}
+A.~Graves,
+``Sequence transduction with recurrent neural networks,''
+in \textit{Proc. ICML Workshop on Representation Learning}, 2012.
+
+\bibitem{hannun2014deep}
+A.~Hannun \etal,
+``Deep speech: Scaling up end-to-end speech recognition,''
+\textit{arXiv preprint arXiv:1412.5567}, 2014.
+
+\bibitem{amodei2016deep}
+D.~Amodei \etal,
+``Deep speech 2: End-to-end speech recognition in English and Mandarin,''
+in \textit{Proc. ICML}, 2016, pp.~173--182.
+
+\bibitem{vaswani2017attention}
+A.~Vaswani \etal,
+``Attention is all you need,''
+in \textit{Proc. NeurIPS}, 2017, pp.~5998--6008.
+
+\bibitem{gulati2020conformer}
+A.~Gulati \etal,
+``Conformer: Convolution-augmented transformer for speech recognition,''
+in \textit{Proc. Interspeech}, 2020, pp.~5036--5040.
+
+\bibitem{he2019streaming}
+Y.~He \etal,
+``Streaming end-to-end speech recognition for mobile devices,''
+in \textit{Proc. ICASSP}, IEEE, 2019, pp.~6381--6385.
+
+\bibitem{panayotov2015librispeech}
+V.~Panayotov, G.~Chen, D.~Povey, and S.~Khudanpur,
+``LibriSpeech: An ASR corpus based on public domain audio books,''
+in \textit{Proc. ICASSP}, IEEE, 2015, pp.~5206--5210.
+
+\bibitem{baevski2020wav2vec}
+A.~Baevski, Y.~Zhou, A.~Mohamed, and M.~Auli,
+``wav2vec 2.0: A framework for self-supervised learning of speech representations,''
+in \textit{Proc. NeurIPS}, 2020, pp.~12449--12460.
+
+\bibitem{schneider2019wav2vec}
+S.~Schneider, A.~Baevski, R.~Collobert, and M.~Auli,
+``wav2vec: Unsupervised pre-training for speech recognition,''
+in \textit{Proc. Interspeech}, 2019, pp.~3465--3469.
+
+\bibitem{hsu2021hubert}
+W.~Hsu \etal,
+``HuBERT: Self-supervised speech representation learning by masked prediction of hidden units,''
+\textit{IEEE/ACM Transactions on Audio, Speech, and Language Processing}, vol.~29, pp.~3451--3460, 2021.
+
+\bibitem{chen2022wavlm}
+S.~Chen \etal,
+``WavLM: Large-scale self-supervised pre-training for full stack speech processing,''
+\textit{IEEE Journal of Selected Topics in Signal Processing}, vol.~16, no.~6, pp.~1505--1518, 2022.
+
+\bibitem{radford2023robust}
+A.~Radford \etal,
+``Robust speech recognition via large-scale weak supervision,''
+in \textit{Proc. ICML}, 2023, pp.~28492--28518.
+
+\bibitem{vaswani2017attention2}
+A.~Vaswani \etal,
+``Attention is all you need,''
+in \textit{Proc. NeurIPS}, 2017.
+
+\bibitem{park2019specaugment}
+D.~S.~Park \etal,
+``SpecAugment: A simple data augmentation method for automatic speech recognition,''
+in \textit{Proc. Interspeech}, 2019, pp.~2613--2617.
+
+\bibitem{ko2015audio}
+T.~Ko \etal,
+``Audio augmentation for speech recognition,''
+in \textit{Proc. Interspeech}, 2015, pp.~3586--3589.
+
+\bibitem{vesely2013sequence}
+K.~Vesel\'{y}, A.~Ghoshal, L.~Burget, and D.~Povey,
+``Sequence-discriminative training of deep neural networks,''
+in \textit{Proc. Interspeech}, 2013, pp.~2330--2334.
+
+\bibitem{povey2016purely}
+D.~Povey \etal,
+``Purely sequence-trained neural networks for ASR based on lattice-free MMI,''
+in \textit{Proc. Interspeech}, 2016, pp.~2751--2755.
+
+\bibitem{gulcehre2015using}
+C.~Gulcehre \etal,
+``On using monolingual corpora in neural machine translation,''
+\textit{arXiv preprint arXiv:1503.03535}, 2015.
+
+\bibitem{sriram2018cold}
+A.~Sriram, H.~Jun, S.~Satheesh, and A.~Coates,
+``Cold fusion: Training seq2seq models together with language models,''
+in \textit{Proc. Interspeech}, 2018, pp.~387--391.
+
+\bibitem{meng2021internal}
+Z.~Meng \etal,
+``Internal language model estimation for domain-adaptive end-to-end speech recognition,''
+in \textit{Proc. SLT}, IEEE, 2021, pp.~163--170.
+
+\bibitem{shi2021emformer}
+Y.~Shi \etal,
+``Emformer: Efficient memory transformer based acoustic model for low latency streaming speech recognition,''
+in \textit{Proc. ICASSP}, IEEE, 2021, pp.~6783--6787.
+
+\bibitem{saon2023advancing}
+G.~Saon \etal,
+``Advancing RNN transducer technology for speech recognition,''
+in \textit{Proc. ICASSP}, IEEE, 2023.
+
+\bibitem{hinton2015distilling}
+G.~Hinton, O.~Vinyals, and J.~Dean,
+``Distilling the knowledge in a neural network,''
+\textit{arXiv preprint arXiv:1503.02531}, 2015.
+
+\bibitem{kim2023squeezeformer}
+S.~Kim \etal,
+``Squeezeformer: An efficient transformer for automatic speech recognition,''
+in \textit{Proc. NeurIPS}, 2022.
+
+\bibitem{bommasani2021opportunities}
+R.~Bommasani \etal,
+``On the opportunities and risks of foundation models,''
+\textit{arXiv preprint arXiv:2108.07258}, 2021.
+
+\bibitem{pratap2023scaling}
+V.~Pratap \etal,
+``Scaling speech technology to 1,000+ languages,''
+\textit{Journal of Machine Learning Research}, vol.~25, no.~171, pp.~1--47, 2024.
+
+\bibitem{chu2023qwen}
+Y.~Chu \etal,
+``Qwen-Audio: Advancing universal audio understanding via unified large-scale audio-language models,''
+\textit{arXiv preprint arXiv:2311.07919}, 2023.
+
+\bibitem{tang2023salmonn}
+C.~Tang \etal,
+``SALMONN: Towards generic hearing abilities for large language models,''
+\textit{arXiv preprint arXiv:2310.13289}, 2023.
+
+\bibitem{zhang2023speechgpt}
+D.~Zhang \etal,
+``SpeechGPT: Empowering large language models with intrinsic cross-modal conversational abilities,''
+in \textit{Proc. EMNLP}, 2023.
+
+\bibitem{tian2023few}
+J.~Tian \etal,
+``Few-shot learning for speech recognition via whisper fine-tuning,''
+\textit{arXiv preprint arXiv:2310.16754}, 2023.
+
+\bibitem{wang2023benchmarking}
+Y.~Wang \etal,
+``Benchmarking whisper for speech recognition,''
+in \textit{Proc. ICASSP}, IEEE, 2023.
+
+\bibitem{yang2021superb}
+S.~Yang \etal,
+``SUPERB: Speech processing Universal PERformance Benchmark,''
+in \textit{Proc. Interspeech}, 2021, pp.~1194--1198.
+
+\bibitem{oord2018representation}
+A.~van den Oord, Y.~Li, and O.~Vinyals,
+``Representation learning with contrastive predictive coding,''
+\textit{arXiv preprint arXiv:1807.03748}, 2018.
+
+\bibitem{chung2019unsupervised}
+Y.~Chung, W.~Hsu, H.~Tang, and J.~Glass,
+``An unsupervised autoregressive model for speech representation learning,''
+in \textit{Proc. Interspeech}, 2019, pp.~146--150.
+
+\bibitem{liu2020mockingjay}
+A.~T.~Liu \etal,
+``Mockingjay: Unsupervised speech representation learning with deep bidirectional transformer encoders,''
+in \textit{Proc. ICASSP}, IEEE, 2020, pp.~6419--6423.
+
+\bibitem{liu2021tera}
+A.~T.~Liu \etal,
+``TERA: Self-supervised learning of transformer encoder representation for speech,''
+\textit{IEEE/ACM Transactions on Audio, Speech, and Language Processing}, vol.~29, pp.~2351--2366, 2021.
+
+\bibitem{baevski2022data2vec}
+A.~Baevski, W.~Hsu, Q.~Xu, A.~Babu, J.~Gu, and M.~Auli,
+``data2vec: A general framework for self-supervised learning in speech, vision and language,''
+in \textit{Proc. ICML}, 2022.
+
+\bibitem{li2022code}
+G.~Li \etal,
+``Code-switching speech recognition: A survey,''
+\textit{IEEE/ACM Transactions on Audio, Speech, and Language Processing}, 2022.
+
+\bibitem{davis1980comparison}
+S.~Davis and P.~Mermelstein,
+``Comparison of parametric representations for monosyllabic word recognition in continuously spoken sentences,''
+\textit{IEEE Transactions on Acoustics, Speech, and Signal Processing}, vol.~28, no.~4, pp.~357--366, 1980.
+
+\bibitem{garofolo1993timit}
+J.~Garofolo \etal,
+``TIMIT acoustic-phonetic continuous speech corpus,''
+Linguistic Data Consortium, 1993.
+
+\bibitem{paul1992design}
+D.~B.~Paul and J.~Baker,
+``The design for the Wall Street Journal-based CSR corpus,''
+in \textit{Proc. DARPA Speech and Natural Language Workshop}, 1992.
+
+\bibitem{godfrey1992switchboard}
+J.~J.~Godfrey, E.~C.~Holliman, and J.~McDaniel,
+``SWITCHBOARD: Telephone speech corpus for research and development,''
+in \textit{Proc. ICASSP}, IEEE, 1992, pp.~517--520.
+
+\bibitem{cieri2004fisher}
+C.~Cieri, D.~Miller, and K.~Walker,
+``The Fisher corpus: A resource for the next generations of speech-to-text,''
+in \textit{Proc. LREC}, 2004.
+
+\bibitem{ardila2020common}
+R.~Ardila \etal,
+``Common Voice: A massively-multilingual speech corpus,''
+in \textit{Proc. LREC}, 2020.
+
+\bibitem{bu2017aishell}
+H.~Bu \etal,
+``AISHELL-1: An open-source Mandarin speech corpus and a speech recognition baseline,''
+in \textit{Proc. Interspeech}, 2017, pp.~2003--2007.
+
+\bibitem{du2018aishell}
+J.~Du \etal,
+``AISHELL-2: Transforming Mandarin ASR research into industrial scale,''
+\textit{arXiv preprint arXiv:1808.10583}, 2018.
+
+\bibitem{chen2021gigaspeech}
+G.~Chen \etal,
+``GigaSpeech: An evolving, multi-domain ASR corpus with 10,000 hours of transcribed audio,''
+in \textit{Proc. Interspeech}, 2021, pp.~3670--3674.
+
+\bibitem{o2021spgispeech}
+P.~O'Neill \etal,
+``SPGISpeech: 5,000 hours of transcribed financial audio for fully formatted end-to-end speech recognition,''
+in \textit{Proc. Interspeech}, 2021.
+
+\bibitem{bourlard1989links}
+H.~Bourlard and N.~Morgan,
+``Links between Markov models and multilayer perceptrons,''
+\textit{IEEE Transactions on Pattern Analysis and Machine Intelligence}, vol.~15, no.~12, pp.~1161--1172, 1993.
+
+\bibitem{bourlard2012connectionist}
+H.~Bourlard and N.~Morgan,
+``Connectionist speech recognition: A hybrid approach,''
+Kluwer Academic Publishers, 1994.
+
+\end{thebibliography}
+
+\end{CJK}
+\end{document}

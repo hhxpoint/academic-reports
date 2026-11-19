@@ -1,0 +1,22 @@
+! Router1 静态路由配置
+enable
+configure terminal
+hostname Router1
+!
+! 连接子网2的接口
+interface FastEthernet0/0
+ ip address 192.168.2.1 255.255.255.0
+ no shutdown
+ exit
+!
+! 连接Router0的接口
+interface FastEthernet1/0
+ ip address 10.0.0.2 255.255.255.0
+ no shutdown
+ exit
+!
+! 静态路由：到达192.168.1.0/24网段 via Router0
+ip route 192.168.1.0 255.255.255.0 10.0.0.1
+!
+end
+write memory

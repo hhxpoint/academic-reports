@@ -1,0 +1,22 @@
+DHCP服务器配置步骤
+====================
+
+1. 打开DHCP服务器设备
+2. 点击Services标签
+3. 选择DHCP服务
+4. 配置参数：
+   - Service: On
+   - Pool Name: pool0
+   - Default Gateway: 192.168.0.254
+   - DNS Server: 192.168.0.253
+   - Start IP Address: 192.168.0.1
+   - Subnet Mask: 255.255.255.0
+   - Max Number of Users: 50
+5. 点击Save保存
+6. 点击Add添加地址池
+
+PC端配置：
+1. 打开PC的Desktop标签
+2. 选择IP Configuration
+3. 选择DHCP
+4. 等待获取IP地址

@@ -1,0 +1,33 @@
+! 多交换机VLAN划分配置（交换机1 - Switch0）
+enable
+configure terminal
+!
+! 创建VLAN
+vlan 10
+ name VLAN10
+ exit
+vlan 20
+ name VLAN20
+ exit
+!
+! 将端口分配到VLAN
+interface FastEthernet0/1
+ switchport mode access
+ switchport access vlan 10
+ exit
+interface FastEthernet0/2
+ switchport mode access
+ switchport access vlan 20
+ exit
+!
+! 配置Trunk口
+interface FastEthernet0/24
+ switchport mode trunk
+ switchport trunk allowed vlan 10,20
+ exit
+!
+show vlan brief
+show interfaces trunk
+!
+end
+write memory

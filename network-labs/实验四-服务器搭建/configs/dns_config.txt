@@ -1,0 +1,22 @@
+DNS服务器配置步骤
+====================
+
+1. 打开DNS服务器设备
+2. 点击Services标签
+3. 选择DNS服务
+4. 配置参数：
+   - DNS Service: On
+   - Name: www.test.com.cn
+   - Address: 192.168.0.252
+   - Type: A Record
+   - 点击Add添加
+5. 添加第二条记录：
+   - Name: ftp.test.cn
+   - Address: 192.168.0.252
+   - Type: A Record
+   - 点击Add添加
+
+验证DNS服务：
+在PC的命令行中执行：
+C:\>nslookup www.test.com.cn
+C:\>nslookup ftp.test.cn

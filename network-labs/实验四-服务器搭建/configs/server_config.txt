@@ -1,0 +1,42 @@
+实验四 服务器搭建 - 配置说明
+==============================
+
+网络拓扑：
+- DHCP服务器: 192.168.0.254
+- DNS服务器: 192.168.0.253
+- FTP/WEB服务器: 192.168.0.252
+- PC0: DHCP自动获取
+- PC1: DHCP自动获取
+- 交换机: 2960
+
+DHCP服务器配置（在Packet Tracer服务器GUI中配置）：
+----------------------------------------------
+Service: DHCP
+Pool name: pool0
+Default Gateway: 192.168.0.254
+DNS Server: 192.168.0.253
+Start IP Address: 192.168.0.1
+Subnet Mask: 255.255.255.0
+Max number of users: 50
+
+DNS服务器配置（在Packet Tracer服务器GUI中配置）：
+----------------------------------------------
+Service: DNS
+DNS Service: On
+Name: www.test.com.cn    Address: 192.168.0.252    Type: A Record
+Name: ftp.test.cn         Address: 192.168.0.252    Type: A Record
+
+FTP服务器配置（在Packet Tracer服务器GUI中配置）：
+----------------------------------------------
+Service: FTP
+FTP Service: On
+Username: zhangsan
+Password: zhangsan
+Permissions: Read, Write, Delete, Rename, List
+
+WEB服务器配置（在Packet Tracer服务器GUI中配置）：
+----------------------------------------------
+Service: HTTP
+HTTP: On
+HTTPS: On
+(index.html内容可自定义)

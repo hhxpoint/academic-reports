@@ -1,0 +1,35 @@
+! 单交换机VLAN划分配置
+enable
+configure terminal
+!
+! 创建VLAN
+vlan 10
+ name VLAN10
+ exit
+vlan 20
+ name VLAN20
+ exit
+!
+! 将端口分配到VLAN
+interface FastEthernet0/1
+ switchport mode access
+ switchport access vlan 10
+ exit
+interface FastEthernet0/2
+ switchport mode access
+ switchport access vlan 20
+ exit
+interface FastEthernet0/3
+ switchport mode access
+ switchport access vlan 10
+ exit
+interface FastEthernet0/4
+ switchport mode access
+ switchport access vlan 20
+ exit
+!
+! 查看VLAN配置
+show vlan brief
+!
+end
+write memory
